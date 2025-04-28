@@ -1,22 +1,34 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, MessageCircle, Heart, Leaf, User, AlertTriangle } from "lucide-react";
+import { Home, MessageCircle, Heart, Leaf, AlertTriangle } from "lucide-react";
 import QuickActions from "./QuickActions";
+import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
   children: ReactNode;
   hideNav?: boolean;
+  hideCrisisButton?: boolean;
 }
 
-const Layout = ({ children, hideNav }: LayoutProps) => {
+const Layout = ({ children, hideNav, hideCrisisButton }: LayoutProps) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
+  
+  // Don't show crisis button on the crisis page itself
+  const showCrisisButton = !hideCrisisButton && location.pathname !== "/crisis";
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-gradient-soft">
       <main className="flex-1 pb-20">
         {children}
       </main>
+      
+      {showCrisisButton && (
+        <Link to="/crisis" aria-label="Get emergency help" className="crisis-button touch-target">
+          <AlertTriangle size={24} />
+          <span className="sr-only">Emergency Help</span>
+        </Link>
+      )}
       
       {!hideNav && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 py-2 shadow-md z-40">
@@ -25,7 +37,6 @@ const Layout = ({ children, hideNav }: LayoutProps) => {
             <NavLink to="/chatbot" icon={<MessageCircle size={24} />} label="Chat" isActive={isActive("/chatbot")} />
             <NavLink to="/mood" icon={<Heart size={24} />} label="Mood" isActive={isActive("/mood")} />
             <NavLink to="/self-help" icon={<Leaf size={24} />} label="Help" isActive={isActive("/self-help")} />
-            <NavLink to="/crisis" icon={<AlertTriangle size={24} />} label="Crisis" isActive={isActive("/crisis")} isEmergency />
           </div>
         </nav>
       )}
@@ -44,7 +55,7 @@ interface NavLinkProps {
 }
 
 const NavLink = ({ to, icon, label, isActive, isEmergency }: NavLinkProps) => {
-  const baseClasses = "flex flex-col items-center p-2 transition-colors duration-200";
+  const baseClasses = "flex flex-col items-center p-2 transition-colors duration-200 touch-target";
   const activeClasses = isActive ? "text-primary" : "text-slate-600 hover:text-primary";
   const emergencyClasses = isEmergency ? "text-destructive hover:text-destructive" : "";
   

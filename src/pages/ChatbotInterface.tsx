@@ -1,10 +1,16 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, User, Bot } from "lucide-react";
+import { Send, Paperclip, User, Bot, RefreshCw, HelpCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChatMessageSkeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "@/components/ui/tooltip";
 
 interface Message {
   id: string;
@@ -33,7 +39,9 @@ const ChatbotInterface = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,18 +91,87 @@ const ChatbotInterface = () => {
       
       setMessages((prev) => [...prev, botMessage]);
       setIsLoading(false);
+      
+      // Focus input after response
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }, 1500);
+  };
+  
+  const clearChat = () => {
+    if (window.confirm("Are you sure you want to clear the chat history?")) {
+      setMessages(INITIAL_MESSAGES);
+    }
   };
 
   return (
-    <Layout>
+    <Layout hideCrisisButton>
       <div className="flex flex-col h-[calc(100vh-16rem)]">
-        <div className="p-4 bg-primary/10 border-b">
-          <h1 className="font-bold text-xl">MindCare Assistant</h1>
-          <p className="text-sm text-slate-600">I'm here to listen and support you 24/7</p>
-        </div>
+        <header className="p-4 bg-primary/20 border-b flex items-center justify-between">
+          <div>
+            <h1 className="font-bold text-xl" id="chat-title">MindCare Assistant</h1>
+            <p className="text-sm text-slate-600">I'm here to listen and support you 24/7</p>
+          </div>
+          <div className="flex gap-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full touch-target" 
+                    onClick={() => setShowHelp(!showHelp)}
+                    aria-label="Show chat help"
+                  >
+                    <HelpCircle size={20} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Chat Help</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full touch-target" 
+                    onClick={clearChat}
+                    aria-label="Clear chat history"
+                  >
+                    <RefreshCw size={20} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Clear Chat</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </header>
         
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {showHelp && (
+          <div className="p-3 bg-accent/50 border-b">
+            <h2 className="font-semibold mb-1">How to use the chat:</h2>
+            <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
+              <li>Type your message and press Enter or tap Send</li>
+              <li>Try questions about anxiety, sleep, or mood</li>
+              <li>Your conversation is private</li>
+              <li>This is AI assistance, not professional therapy</li>
+            </ul>
+          </div>
+        )}
+        
+        <div 
+          className="flex-1 overflow-y-auto p-4 space-y-4" 
+          aria-live="polite"
+          aria-relevant="additions"
+          aria-labelledby="chat-title"
+        >
           {messages.map((message) => (
             <div 
               key={message.id} 
@@ -104,7 +181,7 @@ const ChatbotInterface = () => {
                 {message.sender === 'bot' && (
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-primary/20 text-primary">
-                      <Bot size={16} />
+                      <Bot size={16} aria-hidden="true" />
                     </AvatarFallback>
                   </Avatar>
                 )}
@@ -113,6 +190,7 @@ const ChatbotInterface = () => {
                   className={`chat-bubble ${
                     message.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'
                   }`}
+                  aria-label={`${message.sender === 'user' ? 'You' : 'Assistant'}: ${message.text}`}
                 >
                   {message.text}
                 </div>
@@ -120,7 +198,7 @@ const ChatbotInterface = () => {
                 {message.sender === 'user' && (
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-slate-200">
-                      <User size={16} />
+                      <User size={16} aria-hidden="true" />
                     </AvatarFallback>
                   </Avatar>
                 )}
@@ -139,7 +217,7 @@ const ChatbotInterface = () => {
         
         {messages.length === 1 && (
           <div className="p-3 bg-slate-50 border-t">
-            <p className="text-sm text-slate-600 mb-2">Quick start:</p>
+            <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_REPLIES.map((reply) => (
                 <Button 
@@ -147,7 +225,7 @@ const ChatbotInterface = () => {
                   variant="outline" 
                   size="sm" 
                   onClick={() => handleSendMessage(reply)}
-                  className="text-sm py-1 h-auto"
+                  className="text-sm py-1 h-auto touch-target"
                 >
                   {reply}
                 </Button>
@@ -157,8 +235,20 @@ const ChatbotInterface = () => {
         )}
         
         <div className="p-4 border-t bg-white">
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="flex-shrink-0" aria-label="Attach file">
+          <form 
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+          >
+            <Button 
+              type="button"
+              variant="outline" 
+              size="icon" 
+              className="flex-shrink-0 touch-target" 
+              aria-label="Attach file"
+            >
               <Paperclip size={20} />
             </Button>
             
@@ -167,23 +257,20 @@ const ChatbotInterface = () => {
               placeholder="Type your message..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleSendMessage();
-                }
-              }}
               className="flex-1"
+              aria-label="Type your message"
+              ref={inputRef}
             />
             
             <Button 
-              type="submit" 
-              onClick={() => handleSendMessage()} 
+              type="submit"
               disabled={!inputText.trim() || isLoading}
-              className="flex-shrink-0"
+              className="flex-shrink-0 touch-target"
+              aria-label="Send message"
             >
               <Send size={20} />
             </Button>
-          </div>
+          </form>
         </div>
       </div>
     </Layout>
