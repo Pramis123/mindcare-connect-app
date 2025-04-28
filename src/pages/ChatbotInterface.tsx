@@ -1,106 +1,186 @@
-
-import { useState } from "react";
-import { Send, Mic } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, Paperclip, User, Bot } from "lucide-react";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Layout from "@/components/Layout";
+import { ChatMessageSkeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Message {
+  id: string;
   text: string;
-  isUser: boolean;
+  sender: 'user' | 'bot';
   timestamp: Date;
 }
 
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: '1',
+    text: "Hello! I'm here to support your mental well-being. How can I help you today?",
+    sender: 'bot',
+    timestamp: new Date()
+  }
+];
+
+const QUICK_REPLIES = [
+  "I'm feeling anxious",
+  "I need help with sleep",
+  "I'm feeling sad",
+  "Tips for meditation"
+];
+
 const ChatbotInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      text: "नमस्ते! म तपाईंलाई कसरी मद्दत गर्न सक्छु? (Hello! How can I help you?)",
-      isUser: false,
-      timestamp: new Date(),
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!inputText.trim()) return;
-
-    // Add user message
-    const userMessage: Message = {
-      text: inputText,
-      isUser: true,
-      timestamp: new Date(),
-    };
-    
-    setMessages(prev => [...prev, userMessage]);
-    setInputText("");
-    
-    // Simulate bot response after a short delay
-    setTimeout(() => {
-      const responses = [
-        "तपाईं कस्तो महसुस गर्दै हुनुहुन्छ? (How are you feeling?)",
-        "म सुन्न यहाँ छु। (I'm here to listen.)",
-        "तपाईंलाई मद्दत गर्न पाउँदा खुसी छु। (I'm happy to help you.)",
-        "के तपाईंले आज कुनै राम्रो कुरा अनुभव गर्नुभयो? (Did you experience something good today?)"
-      ];
-      
-      const botMessage: Message = {
-        text: responses[Math.floor(Math.random() * responses.length)],
-        isUser: false,
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSend();
-    }
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = (text: string = inputText) => {
+    if (!text.trim()) return;
+    
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText("");
+    setIsLoading(true);
+    
+    // Simulate bot response
+    setTimeout(() => {
+      let botResponse = "";
+      
+      if (text.toLowerCase().includes("anxious") || text.toLowerCase().includes("anxiety")) {
+        botResponse = "Feeling anxious is normal. Try taking deep breaths - inhale for 4 counts, hold for 2, and exhale for 6. Would you like to learn more breathing techniques?";
+      } else if (text.toLowerCase().includes("sad") || text.toLowerCase().includes("depressed")) {
+        botResponse = "I'm sorry you're feeling down. Remember that your feelings are valid. Would you like to talk more about what's troubling you or would you prefer some self-care suggestions?";
+      } else if (text.toLowerCase().includes("sleep")) {
+        botResponse = "Sleep is crucial for mental health. Try to maintain a regular sleep schedule and avoid screens an hour before bed. Would you like more sleep tips?";
+      } else if (text.toLowerCase().includes("meditation") || text.toLowerCase().includes("meditate")) {
+        botResponse = "Meditation can be very helpful. Start with just 5 minutes of focusing on your breath. Would you like a guided meditation script to try?";
+      } else {
+        botResponse = "Thank you for sharing. I'm here to support you. Would you like to talk more about your feelings or would you prefer some coping strategies?";
+      }
+      
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        text: botResponse,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      
+      setMessages((prev) => [...prev, botMessage]);
+      setIsLoading(false);
+    }, 1500);
   };
 
   return (
     <Layout>
-      <div className="flex flex-col h-screen bg-background pb-16">
-        <div className="bg-white py-3 px-4 border-b">
-          <h1 className="text-lg font-semibold text-center">AI मानसिक स्वास्थ्य सहायक</h1>
+      <div className="flex flex-col h-[calc(100vh-16rem)]">
+        <div className="p-4 bg-primary/10 border-b">
+          <h1 className="font-bold text-xl">MindCare Assistant</h1>
+          <p className="text-sm text-slate-600">I'm here to listen and support you 24/7</p>
         </div>
         
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-          {messages.map((message, index) => (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message) => (
             <div 
-              key={index} 
-              className={`mb-4 max-w-[80%] ${message.isUser ? "ml-auto" : "mr-auto"}`}
+              key={message.id} 
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div 
-                className={`p-3 rounded-lg ${
-                  message.isUser 
-                  ? "bg-primary text-white rounded-br-none" 
-                  : "bg-gray-100 text-gray-800 rounded-bl-none"
-                }`}
-              >
-                {message.text}
-              </div>
-              <div className={`text-xs text-gray-500 mt-1 ${message.isUser ? "text-right" : "text-left"}`}>
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <div className="flex items-start gap-2 max-w-[80%]">
+                {message.sender === 'bot' && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-primary/20 text-primary">
+                      <Bot size={16} />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+                
+                <div 
+                  className={`chat-bubble ${
+                    message.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'
+                  }`}
+                >
+                  {message.text}
+                </div>
+                
+                {message.sender === 'user' && (
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-slate-200">
+                      <User size={16} />
+                    </AvatarFallback>
+                  </Avatar>
+                )}
               </div>
             </div>
           ))}
+          
+          {isLoading && (
+            <div className="flex justify-start">
+              <ChatMessageSkeleton />
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
         </div>
         
-        <div className="bg-white border-t p-3 fixed bottom-0 left-0 right-0">
-          <div className="flex gap-2 container max-w-md mx-auto">
-            <Button variant="outline" size="icon" className="shrink-0">
-              <Mic size={20} />
+        {messages.length === 1 && (
+          <div className="p-3 bg-slate-50 border-t">
+            <p className="text-sm text-slate-600 mb-2">Quick start:</p>
+            <div className="flex flex-wrap gap-2">
+              {QUICK_REPLIES.map((reply) => (
+                <Button 
+                  key={reply} 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleSendMessage(reply)}
+                  className="text-sm py-1 h-auto"
+                >
+                  {reply}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="p-4 border-t bg-white">
+          <div className="flex gap-2">
+            <Button variant="outline" size="icon" className="flex-shrink-0" aria-label="Attach file">
+              <Paperclip size={20} />
             </Button>
+            
             <Input
+              type="text"
+              placeholder="Type your message..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleSendMessage();
+                }
+              }}
               className="flex-1"
             />
-            <Button onClick={handleSend} disabled={!inputText.trim()} size="icon" className="shrink-0">
+            
+            <Button 
+              type="submit" 
+              onClick={() => handleSendMessage()} 
+              disabled={!inputText.trim() || isLoading}
+              className="flex-shrink-0"
+            >
               <Send size={20} />
             </Button>
           </div>

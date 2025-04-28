@@ -1,39 +1,38 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 60% 98%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 210 60% 95%; /* Soft blue #E6F0FA */
+    --foreground: 215 28% 17%; /* Dark gray #1F2937 */
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 28% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 28% 17%;
 
-    --primary: 221 85% 81%;
+    --primary: 224 91% 81%; /* Soft green #A3BFFA */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary-foreground: 215 28% 17%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
     --accent: 220 75% 95%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent-foreground: 215 28% 17%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84.2% 60.2%; /* Red #EF4444 */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 85% 81%;
+    --ring: 224 91% 81%;
 
-    --radius: 0.75rem;
+    --radius: 1rem; /* Increased border radius */
   }
 }
 
@@ -45,6 +44,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 16px; /* Base font size */
   }
 }
 
@@ -58,4 +58,40 @@
 
 .page-header {
   @apply text-2xl font-bold mb-6 text-center;
+}
+
+/* New utility classes for the UI update */
+.text-lg-responsive {
+  @apply text-base md:text-lg;
+}
+
+.icon-btn {
+  @apply p-3 rounded-full flex items-center justify-center;
+}
+
+.card-hover {
+  @apply transition-all duration-200 hover:bg-opacity-80;
+}
+
+/* Mood logging specific styles */
+.mood-emoji {
+  @apply text-4xl md:text-5xl;
+}
+
+/* Loading styles */
+.skeleton {
+  @apply animate-pulse bg-slate-200 rounded;
+}
+
+/* Chat interface styles */
+.chat-bubble {
+  @apply p-4 rounded-xl max-w-[80%] mb-3;
+}
+
+.chat-bubble-user {
+  @apply bg-primary text-white ml-auto;
+}
+
+.chat-bubble-bot {
+  @apply bg-white border border-slate-200 mr-auto;
 }
