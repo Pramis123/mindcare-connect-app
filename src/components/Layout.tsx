@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, MessageCircle, Heart, Leaf, AlertTriangle } from "lucide-react";
@@ -8,9 +9,10 @@ interface LayoutProps {
   children: ReactNode;
   hideNav?: boolean;
   hideCrisisButton?: boolean;
+  pageTitle?: string;
 }
 
-const Layout = ({ children, hideNav, hideCrisisButton }: LayoutProps) => {
+const Layout = ({ children, hideNav, hideCrisisButton, pageTitle }: LayoutProps) => {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
   
@@ -19,6 +21,12 @@ const Layout = ({ children, hideNav, hideCrisisButton }: LayoutProps) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-soft">
+      {pageTitle && (
+        <header className="py-4 px-4 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+          <h1 className="text-2xl font-bold text-center">{pageTitle}</h1>
+        </header>
+      )}
+      
       <main className="flex-1 pb-20">
         {children}
       </main>
