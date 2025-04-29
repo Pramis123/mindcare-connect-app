@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -147,12 +148,19 @@
 
 /* Adjust the space at the bottom of the document to avoid content being hidden behind the fixed chat input */
 body {
-  padding-bottom: 120px; /* Increased to account for both input and nav bar */
+  padding-bottom: 130px; /* Adjusted to account for both input and nav bar, plus quick replies */
 }
 
 /* Bottom navigation with fixed input bar - ensure proper spacing */
 @media (max-width: 640px) {
   body {
-    padding-bottom: 140px; /* Account for both nav and input on mobile */
+    padding-bottom: 150px; /* Account for both nav, input, and quick replies on mobile */
   }
+}
+
+/* Quick replies section */
+.quick-replies-container {
+  background-color: #f9f9f9;
+  border-top: 1px solid #e1e4e8;
+  padding: 8px 16px;
 }

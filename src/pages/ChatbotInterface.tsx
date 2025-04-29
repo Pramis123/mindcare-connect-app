@@ -243,9 +243,9 @@ const ChatbotInterface = () => {
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Quick replies above input - moved to fixed bottom position */}
+        {/* Quick replies above input - with optimized height and styling */}
         {messages.length === 1 && (
-          <div className="fixed bottom-[70px] left-0 right-0 p-3 bg-slate-50 border-t z-10">
+          <div className="fixed bottom-[70px] left-0 right-0 py-2 px-4 bg-slate-50 border-t z-10">
             <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_REPLIES.map((reply) => (
@@ -264,7 +264,7 @@ const ChatbotInterface = () => {
         )}
         
         {/* Input area - fixed to bottom of screen, right above nav bar */}
-        <div className="fixed bottom-16 left-0 right-0 p-4 border-t bg-white z-10 shadow-md">
+        <div className="fixed bottom-16 left-0 right-0 p-2 border-t bg-white z-10 shadow-md">
           <form 
             className="flex gap-2 items-center max-w-md mx-auto"
             onSubmit={(e) => {
