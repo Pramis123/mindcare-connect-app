@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, X, Heart, Leaf, MessageCircle, Moon } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,6 @@ const QuickActions = () => {
           />
           <QuickActionButton
             to="/mood"
-            icon={<Heart size={22} />}
             label="Log Mood"
             bgColor="bg-pink-500"
             borderColor="border-l-pink-300"
@@ -30,7 +29,6 @@ const QuickActions = () => {
           />
           <QuickActionButton
             to="/self-help"
-            icon={<Leaf size={22} />}
             label="Self Help"
             bgColor="bg-green-500"
             borderColor="border-l-green-300"
@@ -38,7 +36,6 @@ const QuickActions = () => {
           />
           <QuickActionButton
             to="/sleep"
-            icon={<Moon size={22} />}
             label="Sleep"
             bgColor="bg-indigo-500"
             borderColor="border-l-indigo-300"
@@ -46,7 +43,6 @@ const QuickActions = () => {
           />
           <QuickActionButton
             to="/chatbot"
-            icon={<MessageCircle size={22} />}
             label="Talk Now"
             bgColor="bg-primary"
             borderColor="border-l-blue-300"
@@ -72,14 +68,13 @@ const QuickActions = () => {
 
 interface QuickActionButtonProps {
   to: string;
-  icon?: React.ReactNode;
   label: string;
   bgColor: string;
   borderColor: string;
   hoverColor: string;
 }
 
-const QuickActionButton = ({ to, icon, label, bgColor, borderColor, hoverColor }: QuickActionButtonProps) => (
+const QuickActionButton = ({ to, label, bgColor, borderColor, hoverColor }: QuickActionButtonProps) => (
   <Link 
     to={to} 
     className={cn(
@@ -92,7 +87,6 @@ const QuickActionButton = ({ to, icon, label, bgColor, borderColor, hoverColor }
   >
     <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
     <span className="relative z-10 flex items-center gap-2">
-      {icon && <span className="group-hover:animate-bounce-subtle transition-all">{icon}</span>}
       <span className="text-sm font-medium pr-1">{label}</span>
     </span>
   </Link>
