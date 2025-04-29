@@ -1,4 +1,4 @@
-#root {
+﻿#root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -99,7 +99,7 @@
 /* Crisis button */
 .crisis-button {
   position: fixed;
-  bottom: 80px;
+  bottom: 70px;
   right: 16px;
   background-color: #ff4c4c;
   color: white;
@@ -150,19 +150,13 @@
 
 /* Adjust the space at the bottom of the document to avoid content being hidden behind the fixed chat input */
 body {
-  padding-bottom: 130px; /* Adjusted to account for both input and nav bar, plus quick replies */
+  padding-bottom: 100px; /* Adjusted after removing QuickActions */
 }
 
 /* Bottom navigation with fixed input bar - ensure proper spacing */
 @media (max-width: 640px) {
   body {
-    padding-bottom: 150px; /* Account for both nav, input, and quick replies on mobile */
+    padding-bottom: 100px; /* Adjusted after removing QuickActions */
   }
 }
 
-/* Quick replies section */
-.quick-replies-container {
-  background-color: #f9f9f9;
-  border-top: 1px solid #e1e4e8;
-  padding: 8px 16px;
-}
