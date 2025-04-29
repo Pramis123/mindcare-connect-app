@@ -176,7 +176,7 @@ const ChatbotInterface = () => {
 
   return (
     <Layout hideCrisisButton>
-      <div className="flex flex-col h-[calc(100vh-16rem)]">
+      <div className="flex flex-col h-[calc(100vh-16rem)] relative">
         <header className="p-4 bg-primary/20 border-b flex items-center justify-between">
           <div>
             <h1 className="font-bold text-xl" id="chat-title">MindCare Assistant</h1>
@@ -236,7 +236,7 @@ const ChatbotInterface = () => {
         )}
         
         <div 
-          className="flex-1 overflow-y-auto p-4 space-y-4" 
+          className="flex-1 overflow-y-auto p-4 space-y-4 pb-[100px]" 
           aria-live="polite"
           aria-relevant="additions"
           aria-labelledby="chat-title"
@@ -285,7 +285,7 @@ const ChatbotInterface = () => {
         </div>
         
         {messages.length === 1 && (
-          <div className="p-3 bg-slate-50 border-t">
+          <div className="absolute bottom-[70px] left-0 right-0 p-3 bg-slate-50 border-t">
             <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_REPLIES.map((reply) => (
@@ -303,9 +303,9 @@ const ChatbotInterface = () => {
           </div>
         )}
         
-        <div className="p-4 border-t bg-white sticky bottom-0 z-10 shadow-sm">
+        <div className="p-4 border-t bg-white fixed bottom-0 left-0 right-0 z-20 shadow-md">
           <form 
-            className="flex gap-2 items-center"
+            className="flex gap-2 items-center max-w-md mx-auto"
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
