@@ -47,6 +47,7 @@ const ChatbotInterface = () => {
   const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isSending, setIsSending] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,8 +57,23 @@ const ChatbotInterface = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Focus input field on initial load
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  // Handle Enter key press to submit
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isLoading && inputText.trim()) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   const handleSendMessage = async (text: string = inputText) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isSending) return;
+    
+    setIsSending(true);
     
     // Add user message
     const userMessage: Message = {
@@ -103,7 +119,7 @@ const ChatbotInterface = () => {
       
       if (USE_MOCK_RESPONSES) {
         // Use mock response with a delay to simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 800)); // Faster response time
         botResponse = getMockResponse(text);
       } else {
         // Prepare conversation history for API - only include the last 10 messages for context
@@ -189,6 +205,7 @@ const ChatbotInterface = () => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setIsSending(false);
       
       // Focus input after response
       setTimeout(() => {
@@ -345,9 +362,9 @@ const ChatbotInterface = () => {
           </div>
         )}
         
-        <div className="p-4 border-t bg-white">
+        <div className="p-4 border-t bg-white sticky bottom-0">
           <form 
-            className="flex gap-2"
+            className="flex gap-2 items-center"
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
@@ -357,31 +374,43 @@ const ChatbotInterface = () => {
               type="button"
               variant="outline" 
               size="icon" 
-              className="flex-shrink-0 touch-target" 
+              className="flex-shrink-0 touch-target rounded-full" 
               aria-label="Attach file"
             >
               <Paperclip size={20} />
             </Button>
             
-            <Input
-              type="text"
-              placeholder="Type your message..."
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              className="flex-1"
-              aria-label="Type your message"
-              ref={inputRef}
-            />
-            
-            <Button 
-              type="submit"
-              disabled={!inputText.trim() || isLoading}
-              className="flex-shrink-0 touch-target"
-              aria-label="Send message"
-            >
-              <Send size={20} />
-            </Button>
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                placeholder="Type your message..."
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyPress}
+                className="flex-1 pl-4 pr-12 py-3 rounded-full border-slate-300 focus-visible:ring-primary"
+                aria-label="Type your message"
+                ref={inputRef}
+                disabled={isLoading}
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <Button 
+                  type="submit"
+                  disabled={!inputText.trim() || isLoading}
+                  size="icon"
+                  variant="ghost"
+                  className={`h-8 w-8 rounded-full ${inputText.trim() ? 'bg-primary text-white hover:bg-primary/90' : 'bg-slate-200'}`}
+                  aria-label="Send message"
+                >
+                  <Send size={16} />
+                </Button>
+              </div>
+            </div>
           </form>
+          {isLoading && (
+            <div className="text-xs text-slate-500 mt-1 text-center animate-pulse">
+              Assistant is typing...
+            </div>
+          )}
         </div>
       </div>
     </Layout>
