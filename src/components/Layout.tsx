@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, MessageCircle, Heart, Leaf } from "lucide-react";
-import QuickActions from "./QuickActions";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -46,8 +45,6 @@ const Layout = ({ children, hideNav, hideCrisisButton, pageTitle }: LayoutProps)
           </div>
         </nav>
       )}
-      
-      <QuickActions />
     </div>
   );
 };
