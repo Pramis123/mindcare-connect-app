@@ -1,7 +1,6 @@
-
 import { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, MessageCircle, Heart, Leaf, AlertTriangle } from "lucide-react";
+import { Home, MessageCircle, Heart, Leaf } from "lucide-react";
 import QuickActions from "./QuickActions";
 import { Button } from "@/components/ui/button";
 
@@ -33,8 +32,7 @@ const Layout = ({ children, hideNav, hideCrisisButton, pageTitle }: LayoutProps)
       
       {showCrisisButton && (
         <Link to="/crisis" aria-label="Get emergency help" className="crisis-button touch-target">
-          <AlertTriangle size={24} />
-          <span className="sr-only">Emergency Help</span>
+          <span>Emergency Help</span>
         </Link>
       )}
       
