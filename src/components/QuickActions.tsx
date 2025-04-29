@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, X, Heart, AlertTriangle, Leaf, MessageCircle, Moon } from "lucide-react";
+import { Plus, X, Heart, Leaf, MessageCircle, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,6 @@ const QuickActions = () => {
         <div className="flex flex-col gap-3 mb-3 items-end animate-in fade-in slide-in-from-bottom-5 duration-300">
           <QuickActionButton
             to="/crisis"
-            icon={<AlertTriangle size={22} />}
             label="Crisis Help"
             bgColor="bg-destructive"
             borderColor="border-l-red-300"
@@ -73,7 +72,7 @@ const QuickActions = () => {
 
 interface QuickActionButtonProps {
   to: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
   bgColor: string;
   borderColor: string;
@@ -93,7 +92,7 @@ const QuickActionButton = ({ to, icon, label, bgColor, borderColor, hoverColor }
   >
     <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></span>
     <span className="relative z-10 flex items-center gap-2">
-      <span className="group-hover:animate-bounce-subtle transition-all">{icon}</span>
+      {icon && <span className="group-hover:animate-bounce-subtle transition-all">{icon}</span>}
       <span className="text-sm font-medium pr-1">{label}</span>
     </span>
   </Link>
