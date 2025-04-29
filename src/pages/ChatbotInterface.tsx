@@ -218,6 +218,7 @@ const ChatbotInterface = () => {
                     message.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'
                   }`}
                   aria-label={`${message.sender === 'user' ? 'You' : 'Assistant'}: ${message.text}`}
+                  style={{ whiteSpace: 'pre-wrap' }}
                 >
                   {message.text}
                 </div>
