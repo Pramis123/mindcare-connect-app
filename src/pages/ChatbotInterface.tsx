@@ -303,7 +303,7 @@ const ChatbotInterface = () => {
           </div>
         )}
         
-        <div className="p-4 border-t bg-white sticky bottom-0 z-10 shadow-sm mt-auto pb-6">
+        <div className="p-4 border-t bg-white sticky bottom-0 z-10 shadow-sm">
           <form 
             className="flex gap-2 items-center"
             onSubmit={(e) => {
