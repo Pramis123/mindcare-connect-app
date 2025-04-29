@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, User, Bot, RefreshCw, HelpCircle } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -11,6 +12,7 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 
 interface Message {
   id: string;
@@ -37,28 +39,29 @@ const QUICK_REPLIES = [
 
 const ChatbotInterface = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-
-  
-
-
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-
-
-
-
   async function sendMessage() {
-  
+    if (!inputText.trim()) return;
+    
+    // Add user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputText,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    
+    setMessages((prev) => [...prev, userMessage]);
+    setInputText("");
+    setIsLoading(true);
+    
     const API_KEY = '48f31d7042581994b88616ebbd3129aaeee1ee928c428c89b476d76db44a9475';
     const API_URL = 'https://api.together.xyz/v1/chat/completions';
-
-    const userMessage = inputText.trim();
-    if (userMessage === '') return;
-
 
     try {
       const response = await fetch(API_URL, {
@@ -71,7 +74,7 @@ const ChatbotInterface = () => {
           model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
           messages: [
             {role:'system', content: 'You are a mental assistant bot and help other with mental health related stuffs and clear all their problems and doubts related to this and you whole purpose to assist with this stuff and you will give answers to ppls questions mainly on the basis of country nepal and only work is on mental health nothing more than that'},
-            {role: 'user', content: inputText }
+            {role: 'user', content: userMessage.text }
           ],
           temperature: 0.7,
         })
@@ -79,7 +82,6 @@ const ChatbotInterface = () => {
 
       const data = await response.json();
     
-
       if (data.choices && data.choices.length > 0) {
         const botMsg = data.choices[0].message.content.trim();
         const botMessage: Message = {
@@ -90,35 +92,19 @@ const ChatbotInterface = () => {
         };
                   
         setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
       } else {
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          text: 'Something went wrong.retry',
-          sender: 'bot',
-          timestamp: new Date()
-        }          
-        setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
+        toast.error("Something went wrong. Please try again.");
       }
-
     } catch (error) {
       console.error('Error:', error);
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        text: 'Error talking to AI.',
-        sender: 'bot',
-        timestamp: new Date()
-      }
-      setMessages((prev) => [...prev, botMessage]);
+      toast.error("Error connecting to the assistant. Please try again later.");
+    } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
-
-};
-
-
-  
-
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -128,44 +114,16 @@ const ChatbotInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (text: string = inputText) => {
-    if (!text.trim()) return;
-    
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text,
-      sender: 'user',
-      timestamp: new Date()
-    };
-    
-    setMessages((prev) => [...prev, userMessage]);
-    setInputText("");
-    setIsLoading(true);
-    
-    // Simulate bot response
+  const handleSendMessage = () => {
+    if (!inputText.trim()) return;
+    sendMessage();
+  };
+  
+  const handleQuickReply = (reply: string) => {
+    setInputText(reply);
     setTimeout(() => {
-      let botResponse = "";
-      
-      if (text.toLowerCase().includes("anxious") || text.toLowerCase().includes("anxiety")) {
-        botResponse = "Feeling anxious is normal. Try taking deep breaths - inhale for 4 counts, hold for 2, and exhale for 6. Would you like to learn more breathing techniques?";
-      } else if (text.toLowerCase().includes("sad") || text.toLowerCase().includes("depressed")) {
-        botResponse = "I'm sorry you're feeling down. Remember that your feelings are valid. Would you like to talk more about what's troubling you or would you prefer some self-care suggestions?";
-      } else if (text.toLowerCase().includes("sleep")) {
-        botResponse = "Sleep is crucial for mental health. Try to maintain a regular sleep schedule and avoid screens an hour before bed. Would you like more sleep tips?";
-      } else if (text.toLowerCase().includes("meditation") || text.toLowerCase().includes("meditate")) {
-        botResponse = "Meditation can be very helpful. Start with just 5 minutes of focusing on your breath. Would you like a guided meditation script to try?";
-      } else {
-        botResponse = "Thank you for sharing. I'm here to support you. Would you like to talk more about your feelings or would you prefer some coping strategies?";
-      }
-      
-
-      
-      // Focus input after response
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }, 1500);
+      sendMessage();
+    }, 100);
   };
   
   const clearChat = () => {
@@ -176,7 +134,7 @@ const ChatbotInterface = () => {
 
   return (
     <Layout hideCrisisButton>
-      <div className="flex flex-col h-[calc(100vh-16rem)] relative">
+      <div className="flex flex-col h-full max-h-[calc(100vh-64px)] relative">
         <header className="p-4 bg-primary/20 border-b flex items-center justify-between">
           <div>
             <h1 className="font-bold text-xl" id="chat-title">MindCare Assistant</h1>
@@ -235,8 +193,9 @@ const ChatbotInterface = () => {
           </div>
         )}
         
+        {/* Chat messages container - adjusted height to leave room for input */}
         <div 
-          className="flex-1 overflow-y-auto p-4 space-y-4 pb-[100px]" 
+          className="flex-1 overflow-y-auto p-4 space-y-4 pb-20" 
           aria-live="polite"
           aria-relevant="additions"
           aria-labelledby="chat-title"
@@ -284,8 +243,9 @@ const ChatbotInterface = () => {
           <div ref={messagesEndRef} />
         </div>
         
+        {/* Quick replies above input - moved to fixed bottom position */}
         {messages.length === 1 && (
-          <div className="absolute bottom-[70px] left-0 right-0 p-3 bg-slate-50 border-t">
+          <div className="fixed bottom-[70px] left-0 right-0 p-3 bg-slate-50 border-t z-10">
             <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_REPLIES.map((reply) => (
@@ -293,7 +253,7 @@ const ChatbotInterface = () => {
                   key={reply} 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => handleSendMessage(reply)}
+                  onClick={() => handleQuickReply(reply)}
                   className="text-sm py-1 h-auto touch-target"
                 >
                   {reply}
@@ -303,7 +263,8 @@ const ChatbotInterface = () => {
           </div>
         )}
         
-        <div className="p-4 border-t bg-white fixed bottom-0 left-0 right-0 z-20 shadow-md">
+        {/* Input area - fixed to bottom of screen, right above nav bar */}
+        <div className="fixed bottom-16 left-0 right-0 p-4 border-t bg-white z-10 shadow-md">
           <form 
             className="flex gap-2 items-center max-w-md mx-auto"
             onSubmit={(e) => {
@@ -346,13 +307,6 @@ const ChatbotInterface = () => {
                   disabled={!inputText.trim() || isLoading}
                   className={`h-8 w-8 rounded-full ${inputText.trim() ? 'bg-primary text-white hover:bg-primary/90' : 'bg-slate-200'}`}
                   aria-label="Send message"
-                  onClick={() => {
-                    if (inputText.trim()) {
-                      handleSendMessage();
-                      // Call the API function separately
-                      sendMessage();
-                    }
-                  }}
                 >
                   <Send size={16} />
                 </Button>
