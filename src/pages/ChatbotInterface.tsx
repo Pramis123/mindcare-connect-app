@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, User, Bot, RefreshCw, HelpCircle } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -195,7 +194,7 @@ const ChatbotInterface = () => {
         
         {/* Chat messages container - adjusted height to leave room for input */}
         <div 
-          className="flex-1 overflow-y-auto p-4 space-y-4 pb-20" 
+          className="flex-1 overflow-y-auto p-4 space-y-4 pb-28" 
           aria-live="polite"
           aria-relevant="additions"
           aria-labelledby="chat-title"
@@ -245,7 +244,7 @@ const ChatbotInterface = () => {
         
         {/* Quick replies above input - with optimized height and styling */}
         {messages.length === 1 && (
-          <div className="fixed bottom-[70px] left-0 right-0 py-2 px-4 bg-slate-50 border-t z-10">
+          <div className="fixed bottom-[180px] left-0 right-0 py-2 px-4 bg-slate-50 border-t z-10">
             <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
             <div className="flex flex-wrap gap-2">
               {QUICK_REPLIES.map((reply) => (
@@ -264,7 +263,7 @@ const ChatbotInterface = () => {
         )}
         
         {/* Input area - fixed to bottom of screen, right above nav bar */}
-        <div className="fixed bottom-16 left-0 right-0 p-2 border-t bg-white z-10 shadow-md">
+        <div className="fixed bottom-24 left-0 right-0 p-2 border-t bg-white z-10 shadow-md">
           <form 
             className="flex gap-2 items-center max-w-md mx-auto"
             onSubmit={(e) => {
