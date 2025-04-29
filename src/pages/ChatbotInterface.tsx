@@ -12,11 +12,6 @@ import {
   TooltipTrigger 
 } from "@/components/ui/tooltip";
 
-// Together.xyz API configuration
-const API_KEY = '48f31d7042581994b88616ebbd3129aaeee1ee928c428c89b476d76db44a9475';
-const API_URL = 'https://api.together.xyz/v1/chat/completions';
-const USE_MOCK_RESPONSES = true; // Set to false when API is working correctly
-
 interface Message {
   id: string;
   text: string;
@@ -42,12 +37,88 @@ const QUICK_REPLIES = [
 
 const ChatbotInterface = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
+
+  
+
+
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isSending, setIsSending] = useState(false);
+
+
+
+
+
+  async function sendMessage() {
+  
+    const API_KEY = '48f31d7042581994b88616ebbd3129aaeee1ee928c428c89b476d76db44a9475';
+    const API_URL = 'https://api.together.xyz/v1/chat/completions';
+
+    const userMessage = inputText.trim();
+    if (userMessage === '') return;
+
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+          messages: [
+            {role:'system', content: 'You are a mental assistant bot and help other with mental health related stuffs and clear all their problems and doubts related to this and you whole purpose to assist with this stuff and you will give answers to ppls questions mainly on the basis of country nepal and only work is on mental health nothing more than that'},
+            {role: 'user', content: inputText }
+          ],
+          temperature: 0.7,
+        })
+      });
+
+      const data = await response.json();
+    
+
+      if (data.choices && data.choices.length > 0) {
+        const botMsg = data.choices[0].message.content.trim();
+        const botMessage: Message = {
+          id: Date.now().toString(),
+          text: botMsg,
+          sender: 'bot',
+          timestamp: new Date()
+        };
+                  
+        setMessages((prev) => [...prev, botMessage]);
+        setIsLoading(false);
+      } else {
+        const botMessage: Message = {
+          id: Date.now().toString(),
+          text: 'Something went wrong.retry',
+          sender: 'bot',
+          timestamp: new Date()
+        }          
+        setMessages((prev) => [...prev, botMessage]);
+        setIsLoading(false);
+      }
+
+    } catch (error) {
+      console.error('Error:', error);
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        text: 'Error talking to AI.',
+        sender: 'bot',
+        timestamp: new Date()
+      }
+      setMessages((prev) => [...prev, botMessage]);
+      setIsLoading(false);
+    }
+
+};
+
+
+  
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -57,23 +128,8 @@ const ChatbotInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Focus input field on initial load
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
-
-  // Handle Enter key press to submit
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isLoading && inputText.trim()) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
-  const handleSendMessage = async (text: string = inputText) => {
-    if (!text.trim() || isSending) return;
-    
-    setIsSending(true);
+  const handleSendMessage = (text: string = inputText) => {
+    if (!text.trim()) return;
     
     // Add user message
     const userMessage: Message = {
@@ -87,151 +143,35 @@ const ChatbotInterface = () => {
     setInputText("");
     setIsLoading(true);
     
-    // Mock response generator function
-    const getMockResponse = (userText: string): string => {
-      const userTextLower = userText.toLowerCase();
-      
-      if (userTextLower.includes("anxious") || userTextLower.includes("anxiety")) {
-        return "Feeling anxious is completely normal. Many people experience anxiety from time to time. Try taking some deep breaths - inhale for 4 counts, hold for 2, and exhale for 6. This can help calm your nervous system.\n\nWould you like to learn more breathing techniques or would you prefer to talk about what's making you feel anxious?";
-      } 
-      else if (userTextLower.includes("sad") || userTextLower.includes("depressed")) {
-        return "I'm sorry you're feeling down. Remember that your feelings are valid and it's okay to not be okay sometimes. Would you like to talk more about what's troubling you, or would you prefer some self-care suggestions that might help lift your mood a bit?";
-      } 
-      else if (userTextLower.includes("sleep") || userTextLower.includes("insomnia")) {
-        return "Sleep is crucial for mental health. Some tips that might help include:\n\n- Try to maintain a regular sleep schedule\n- Avoid screens at least an hour before bed\n- Keep your bedroom cool, dark and quiet\n- Practice a calming bedtime routine\n\nWould you like to hear more about sleep hygiene practices?";
-      } 
-      else if (userTextLower.includes("meditation") || userTextLower.includes("meditate")) {
-        return "Meditation can be very helpful for mental wellbeing. You could start with just 5 minutes of focusing on your breath. When thoughts come (and they will!), gently acknowledge them and return to your breathing.\n\nWould you like a simple guided meditation script to try?";
-      }
-      else if (userTextLower.includes("hello") || userTextLower.includes("hi") || userTextLower === "hey") {
-        return "Hello! It's nice to meet you. I'm here to support your mental wellbeing. How are you feeling today? Is there anything specific you'd like to talk about or get support with?";
-      }
-      else if (userTextLower.includes("what") && userTextLower.includes("do")) {
-        return "I'm here to be a supportive companion for your mental wellbeing journey. I can:\n\n- Listen and provide emotional support\n- Suggest coping strategies for difficult emotions\n- Offer simple self-help exercises\n- Provide information about mental health topics\n\nWhat would be most helpful for you right now?";
-      }
-      else {
-        return "Thank you for sharing that with me. I'm here to support you. Would you like to talk more about your feelings, or would you prefer some coping strategies that might help?";
-      }
-    };
-    
-    try {
+    // Simulate bot response
+    setTimeout(() => {
       let botResponse = "";
       
-      if (USE_MOCK_RESPONSES) {
-        // Use mock response with a delay to simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800)); // Faster response time
-        botResponse = getMockResponse(text);
+      if (text.toLowerCase().includes("anxious") || text.toLowerCase().includes("anxiety")) {
+        botResponse = "Feeling anxious is normal. Try taking deep breaths - inhale for 4 counts, hold for 2, and exhale for 6. Would you like to learn more breathing techniques?";
+      } else if (text.toLowerCase().includes("sad") || text.toLowerCase().includes("depressed")) {
+        botResponse = "I'm sorry you're feeling down. Remember that your feelings are valid. Would you like to talk more about what's troubling you or would you prefer some self-care suggestions?";
+      } else if (text.toLowerCase().includes("sleep")) {
+        botResponse = "Sleep is crucial for mental health. Try to maintain a regular sleep schedule and avoid screens an hour before bed. Would you like more sleep tips?";
+      } else if (text.toLowerCase().includes("meditation") || text.toLowerCase().includes("meditate")) {
+        botResponse = "Meditation can be very helpful. Start with just 5 minutes of focusing on your breath. Would you like a guided meditation script to try?";
       } else {
-        // Prepare conversation history for API - only include the last 10 messages for context
-        const conversationHistory = messages
-          .slice(-10) // Get the most recent messages
-          .filter(msg => msg.id !== '1') // Skip initial greeting for better context
-          .map(msg => ({
-            role: msg.sender === 'user' ? 'user' : 'assistant',
-            content: msg.text
-        }));
-        
-        // Add system prompt and new user message
-        const apiMessages = [
-          {
-            role: "system",
-            content: "You are a friendly, empathetic, and emotionally intelligent mental health support assistant. Your goal is to provide supportive conversation, gentle encouragement, mood tracking prompts, and suggest simple self-help exercises. You are not a therapist or doctor, and you must never provide clinical diagnosis, medical advice, or treatment. Always use simple, clear, and warm language that even people with basic literacy can understand. Prioritize understanding the user's emotions, offering positive reinforcement, and suggesting actionable next steps (like breathing exercises, journaling, or reaching out for help). If the user expresses crisis keywords (like suicide, self-harm, severe depression), immediately suggest contacting a crisis helpline or a trusted person without delay. You are culturally sensitive to users from Nepal and should adapt tone accordingly (polite, caring, non-judgmental)."
-          },
-          ...conversationHistory,
-          { role: 'user', content: text }
-        ];
-        
-        console.log('Sending API request to:', API_URL);
-        console.log('API messages:', apiMessages);
-        
-        // Make API call to Together.xyz
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${API_KEY}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-            messages: apiMessages,
-            temperature: 0.7,
-            max_tokens: 800,
-            top_p: 0.9
-          })
-        });
-        
-        console.log('API response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API error response:', errorText);
-          throw new Error(`API responded with status: ${response.status}. Details: ${errorText}`);
-        }
-        
-        const data = await response.json();
-        console.log('LLM Response data:', data);
-        
-        if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-          botResponse = data.choices[0].message.content.trim();
-          console.log('Bot response:', botResponse);
-        } else {
-          // Handle missing or unexpected response structure
-          console.error('Unexpected API response structure:', data);
-          throw new Error('Received an unexpected response format from the API');
-        }
+        botResponse = "Thank you for sharing. I'm here to support you. Would you like to talk more about your feelings or would you prefer some coping strategies?";
       }
       
-      // Add bot message
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        text: botResponse,
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      
-      setMessages((prev) => [...prev, botMessage]);
-      
-    } catch (error) {
-      console.error('Error communicating with AI:', error);
-      
-      // Add error message
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        text: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-        sender: 'bot',
-        timestamp: new Date()
-      };
-      
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-      setIsSending(false);
+
       
       // Focus input after response
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
-    }
+    }, 1500);
   };
   
   const clearChat = () => {
     if (window.confirm("Are you sure you want to clear the chat history?")) {
       setMessages(INITIAL_MESSAGES);
     }
-  };
-
-  // Helper function to format message text with basic markdown
-  const formatMessage = (text: string) => {
-    // Replace line breaks with <br>
-    let formattedText = text.replace(/\n/g, "<br>");
-    
-    // Replace **text** with <b>text</b> for bold
-    formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
-    
-    // Replace _text_ with <i>text</i> for italic
-    formattedText = formattedText.replace(/_(.*?)_/g, "<i>$1</i>");
-    
-    return formattedText;
   };
 
   return (
@@ -320,8 +260,9 @@ const ChatbotInterface = () => {
                     message.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'
                   }`}
                   aria-label={`${message.sender === 'user' ? 'You' : 'Assistant'}: ${message.text}`}
-                  dangerouslySetInnerHTML={{ __html: formatMessage(message.text) }}
-                />
+                >
+                  {message.text}
+                </div>
                 
                 {message.sender === 'user' && (
                   <Avatar className="h-8 w-8">
@@ -362,7 +303,7 @@ const ChatbotInterface = () => {
           </div>
         )}
         
-        <div className="p-4 border-t bg-white sticky bottom-0">
+        <div className="p-4 border-t bg-white sticky bottom-0 z-10 shadow-sm">
           <form 
             className="flex gap-2 items-center"
             onSubmit={(e) => {
@@ -386,7 +327,12 @@ const ChatbotInterface = () => {
                 placeholder="Type your message..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={handleKeyPress}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 className="flex-1 pl-4 pr-12 py-3 rounded-full border-slate-300 focus-visible:ring-primary"
                 aria-label="Type your message"
                 ref={inputRef}
@@ -395,11 +341,18 @@ const ChatbotInterface = () => {
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                 <Button 
                   type="submit"
-                  disabled={!inputText.trim() || isLoading}
-                  size="icon"
                   variant="ghost"
+                  size="icon"
+                  disabled={!inputText.trim() || isLoading}
                   className={`h-8 w-8 rounded-full ${inputText.trim() ? 'bg-primary text-white hover:bg-primary/90' : 'bg-slate-200'}`}
                   aria-label="Send message"
+                  onClick={() => {
+                    if (inputText.trim()) {
+                      handleSendMessage();
+                      // Call the API function separately
+                      sendMessage();
+                    }
+                  }}
                 >
                   <Send size={16} />
                 </Button>
