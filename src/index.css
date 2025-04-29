@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -139,4 +138,14 @@
 /* Crisis button */
 .crisis-button {
   @apply fixed bottom-24 right-4 z-40 bg-destructive text-white p-3 rounded-full shadow-lg animate-pulse;
+}
+
+/* Hide scrollbar while allowing scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
