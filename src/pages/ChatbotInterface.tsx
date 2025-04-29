@@ -1,16 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { Send, Paperclip, User, Bot, RefreshCw, HelpCircle } from "lucide-react";
+
+import { useState } from "react";
 import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ChatMessageSkeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  Tooltip, 
-  TooltipContent, 
-  TooltipProvider, 
-  TooltipTrigger 
-} from "@/components/ui/tooltip";
+import ChatHeader from "@/components/chat/ChatHeader";
+import ChatHelp from "@/components/chat/ChatHelp";
+import ChatMessages from "@/components/chat/ChatMessages";
+import ChatInput from "@/components/chat/ChatInput";
+import QuickReplies from "@/components/chat/QuickReplies";
+import { sendMessageToAI } from "@/services/chatService";
 
 interface Message {
   id: string;
@@ -37,98 +33,11 @@ const QUICK_REPLIES = [
 
 const ChatbotInterface = () => {
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-
-  
-
-
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-
-
-
-
-  async function sendMessage() {
-  
-    const API_KEY = '48f31d7042581994b88616ebbd3129aaeee1ee928c428c89b476d76db44a9475';
-    const API_URL = 'https://api.together.xyz/v1/chat/completions';
-
-    const userMessage = inputText.trim();
-    if (userMessage === '') return;
-
-
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-          messages: [
-            {role:'system', content: 'You are a mental assistant bot and help other with mental health related stuffs and clear all their problems and doubts related to this and you whole purpose to assist with this stuff and you will give answers to ppls questions mainly on the basis of country nepal and only work is on mental health nothing more than that'},
-            {role: 'user', content: inputText }
-          ],
-          temperature: 0.7,
-        })
-      });
-
-      const data = await response.json();
-    
-
-      if (data.choices && data.choices.length > 0) {
-        const botMsg = data.choices[0].message.content.trim();
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          text: botMsg,
-          sender: 'bot',
-          timestamp: new Date()
-        };
-                  
-        setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
-      } else {
-        const botMessage: Message = {
-          id: Date.now().toString(),
-          text: 'Something went wrong.retry',
-          sender: 'bot',
-          timestamp: new Date()
-        }          
-        setMessages((prev) => [...prev, botMessage]);
-        setIsLoading(false);
-      }
-
-    } catch (error) {
-      console.error('Error:', error);
-      const botMessage: Message = {
-        id: Date.now().toString(),
-        text: 'Error talking to AI.',
-        sender: 'bot',
-        timestamp: new Date()
-      }
-      setMessages((prev) => [...prev, botMessage]);
-      setIsLoading(false);
-    }
-
-};
-
-
-  
-
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSendMessage = (text: string = inputText) => {
+  const handleSendMessage = async (text: string = inputText) => {
     if (!text.trim()) return;
     
     // Add user message
@@ -143,29 +52,21 @@ const ChatbotInterface = () => {
     setInputText("");
     setIsLoading(true);
     
-    // Simulate bot response
-    setTimeout(() => {
-      let botResponse = "";
-      
-      if (text.toLowerCase().includes("anxious") || text.toLowerCase().includes("anxiety")) {
-        botResponse = "Feeling anxious is normal. Try taking deep breaths - inhale for 4 counts, hold for 2, and exhale for 6. Would you like to learn more breathing techniques?";
-      } else if (text.toLowerCase().includes("sad") || text.toLowerCase().includes("depressed")) {
-        botResponse = "I'm sorry you're feeling down. Remember that your feelings are valid. Would you like to talk more about what's troubling you or would you prefer some self-care suggestions?";
-      } else if (text.toLowerCase().includes("sleep")) {
-        botResponse = "Sleep is crucial for mental health. Try to maintain a regular sleep schedule and avoid screens an hour before bed. Would you like more sleep tips?";
-      } else if (text.toLowerCase().includes("meditation") || text.toLowerCase().includes("meditate")) {
-        botResponse = "Meditation can be very helpful. Start with just 5 minutes of focusing on your breath. Would you like a guided meditation script to try?";
-      } else {
-        botResponse = "Thank you for sharing. I'm here to support you. Would you like to talk more about your feelings or would you prefer some coping strategies?";
-      }
-      
-
-      
-      // Focus input after response
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }, 1500);
+    try {
+      const botMessage = await sendMessageToAI(text);
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: Date.now().toString() + "-error",
+        text: "Sorry, there was an error processing your request.",
+        sender: 'bot',
+        timestamp: new Date()
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const clearChat = () => {
@@ -174,197 +75,28 @@ const ChatbotInterface = () => {
     }
   };
 
+  const toggleHelp = () => {
+    setShowHelp(!showHelp);
+  };
+
   return (
     <Layout hideCrisisButton>
       <div className="flex flex-col h-[calc(100vh-16rem)]">
-        <header className="p-4 bg-primary/20 border-b flex items-center justify-between">
-          <div>
-            <h1 className="font-bold text-xl" id="chat-title">MindCare Assistant</h1>
-            <p className="text-sm text-slate-600">I'm here to listen and support you 24/7</p>
-          </div>
-          <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="rounded-full touch-target" 
-                    onClick={() => setShowHelp(!showHelp)}
-                    aria-label="Show chat help"
-                  >
-                    <HelpCircle size={20} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Chat Help</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="rounded-full touch-target" 
-                    onClick={clearChat}
-                    aria-label="Clear chat history"
-                  >
-                    <RefreshCw size={20} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Clear Chat</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </header>
+        <ChatHeader toggleHelp={toggleHelp} clearChat={clearChat} />
+        <ChatHelp showHelp={showHelp} />
         
-        {showHelp && (
-          <div className="p-3 bg-accent/50 border-b">
-            <h2 className="font-semibold mb-1">How to use the chat:</h2>
-            <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
-              <li>Type your message and press Enter or tap Send</li>
-              <li>Try questions about anxiety, sleep, or mood</li>
-              <li>Your conversation is private</li>
-              <li>This is AI assistance, not professional therapy</li>
-            </ul>
-          </div>
-        )}
-        
-        <div 
-          className="flex-1 overflow-y-auto p-4 space-y-4" 
-          aria-live="polite"
-          aria-relevant="additions"
-          aria-labelledby="chat-title"
-        >
-          {messages.map((message) => (
-            <div 
-              key={message.id} 
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className="flex items-start gap-2 max-w-[80%]">
-                {message.sender === 'bot' && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary/20 text-primary">
-                      <Bot size={16} aria-hidden="true" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                
-                <div 
-                  className={`chat-bubble ${
-                    message.sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot'
-                  }`}
-                  aria-label={`${message.sender === 'user' ? 'You' : 'Assistant'}: ${message.text}`}
-                >
-                  {message.text}
-                </div>
-                
-                {message.sender === 'user' && (
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-slate-200">
-                      <User size={16} aria-hidden="true" />
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-              </div>
-            </div>
-          ))}
-          
-          {isLoading && (
-            <div className="flex justify-start">
-              <ChatMessageSkeleton />
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+        <ChatMessages messages={messages} isLoading={isLoading} />
         
         {messages.length === 1 && (
-          <div className="p-3 bg-slate-50 border-t">
-            <p className="text-sm text-slate-600 mb-2">Quick start - try one of these:</p>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_REPLIES.map((reply) => (
-                <Button 
-                  key={reply} 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleSendMessage(reply)}
-                  className="text-sm py-1 h-auto touch-target"
-                >
-                  {reply}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <QuickReplies replies={QUICK_REPLIES} onSelectReply={handleSendMessage} />
         )}
         
-        <div className="p-4 border-t bg-white sticky bottom-0 z-10 shadow-sm mt-auto pb-6">
-          <form 
-            className="flex gap-2 items-center"
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-          >
-            <Button 
-              type="button"
-              variant="outline" 
-              size="icon" 
-              className="flex-shrink-0 touch-target rounded-full" 
-              aria-label="Attach file"
-            >
-              <Paperclip size={20} />
-            </Button>
-            
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                placeholder="Type your message..."
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
-                }}
-                className="flex-1 pl-4 pr-12 py-3 rounded-full border-slate-300 focus-visible:ring-primary"
-                aria-label="Type your message"
-                ref={inputRef}
-                disabled={isLoading}
-              />
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <Button 
-                  type="submit"
-                  variant="ghost"
-                  size="icon"
-                  disabled={!inputText.trim() || isLoading}
-                  className={`h-8 w-8 rounded-full ${inputText.trim() ? 'bg-primary text-white hover:bg-primary/90' : 'bg-slate-200'}`}
-                  aria-label="Send message"
-                  onClick={() => {
-                    if (inputText.trim()) {
-                      handleSendMessage();
-                      // Call the API function separately
-                      sendMessage();
-                    }
-                  }}
-                >
-                  <Send size={16} />
-                </Button>
-              </div>
-            </div>
-          </form>
-          {isLoading && (
-            <div className="text-xs text-slate-500 mt-1 text-center animate-pulse">
-              Assistant is typing...
-            </div>
-          )}
-        </div>
+        <ChatInput 
+          inputText={inputText} 
+          setInputText={setInputText} 
+          handleSendMessage={() => handleSendMessage()} 
+          isLoading={isLoading} 
+        />
       </div>
     </Layout>
   );
