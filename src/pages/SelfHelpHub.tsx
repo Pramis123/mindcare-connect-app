@@ -364,7 +364,7 @@ const SelfHelpHub = () => {
         </div>
 
         {/* Language toggle button */}
-        <div className="fixed bottom-20 right-4 z-10">
+        <div className="fixed bottom-20 left-10 z-10">
           <Button 
             onClick={toggleLanguage} 
             className="rounded-full shadow-md"
