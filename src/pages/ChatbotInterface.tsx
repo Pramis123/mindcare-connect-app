@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { Send, Paperclip, User, Bot, RefreshCw, HelpCircle, Mic, Home, MessageCircle, Heart, LifeBuoy, Smile, Moon, Bed, Sparkles } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -55,6 +56,7 @@ const ChatbotInterface = () => {
   const [showMoodCheck, setShowMoodCheck] = useState(false);
   const [lastInteraction, setLastInteraction] = useState(Date.now());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function sendMessage() {
@@ -127,12 +129,19 @@ const ChatbotInterface = () => {
   }
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Fix: Only scroll if ref is available
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    // Delay scroll to ensure rendering completes
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [messages, isLoading]);
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
@@ -186,6 +195,9 @@ const ChatbotInterface = () => {
       setIsLoading(false);
     }, 1500);
   };
+
+  // Determine if we should show quick replies
+  const shouldShowQuickReplies = messages.length === 1;
 
   return (
     <Layout hideCrisisButton>
@@ -264,6 +276,7 @@ const ChatbotInterface = () => {
           aria-live="polite"
           aria-relevant="additions"
           aria-labelledby="chat-title"
+          ref={chatContainerRef}
         >
           {messages.map((message) => (
             <div 
@@ -346,8 +359,8 @@ const ChatbotInterface = () => {
         </div>
         
         {/* Redesigned categorized quick replies */}
-        {messages.length === 1 && (
-          <div className="fixed bottom-[120px] left-0 right-0 py-3 px-4 bg-slate-50/90 backdrop-blur-sm border-t z-10 overflow-y-auto max-h-[40vh]">
+        {shouldShowQuickReplies && (
+          <div className="fixed bottom-[120px] left-0 right-0 py-3 px-4 bg-slate-50/90 backdrop-blur-sm border-t z-10 max-h-[180px] overflow-y-auto">
             <h3 className="text-base font-medium mb-3">Let's get started:</h3>
             
             <div className="mb-4">

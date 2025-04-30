@@ -1,3 +1,4 @@
+
 ﻿#root {
   max-width: 1280px;
   margin: 0 auto;
@@ -150,13 +151,12 @@
 
 /* Adjust the space at the bottom of the document to avoid content being hidden behind the fixed chat input */
 body {
-  padding-bottom: 100px; /* Adjusted after removing QuickActions */
+  padding-bottom: 120px; /* Increased padding to accommodate both input and nav bar */
 }
 
 /* Bottom navigation with fixed input bar - ensure proper spacing */
 @media (max-width: 640px) {
   body {
-    padding-bottom: 100px; /* Adjusted after removing QuickActions */
+    padding-bottom: 120px; /* Increased padding to accommodate both input and nav bar */
   }
 }
-
